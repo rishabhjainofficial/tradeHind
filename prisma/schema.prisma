@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String
+  role        String // client | seller | admin
+  companyName String?
+  city        String?
+  createdAt   DateTime @default(now())
+
+  @@index([role])
+  @@index([city])
+}
+
+model SellerProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  phone               String   @default("")
+  companyName         String
+  tagline             String?
+  logo                String
+  banner              String
+  GSTIN               String
+  businessType        String
+  address             String
+  city                String
+  state               String
+  lat                 Float
+  lng                 Float
+  isOpenNow           Boolean  @default(true)
+  businessHours       String
+  responseTimeMinutes Int
+  trustSealStatus     Boolean  @default(false)
+  gstVerified         Boolean  @default(true)
+  subscriptionTier    String   @default("free") // gold | silver | free
+  leadCreditsBalance  Int      @default(50)
+  videoUrl            String?
+  factoryPhotos       String[]
+  rankScore           Int      @default(0)
+  rating              Float    @default(4.5)
+  reviewCount         Int      @default(10)
+  establishedYear     Int      @default(2010)
+  employeeCount       String   @default("10-50 People")
+  createdAt           DateTime @default(now())
+
+  @@index([city, rankScore(sort: Desc)])
+  @@index([subscriptionTier, rankScore(sort: Desc)])
+  @@index([trustSealStatus, rankScore(sort: Desc)])
+  @@index([lat, lng])
+}
+
+model Category {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  iconName      String
+  description   String?
+  image         String?
+  subCategories Json     @default("[]")
+  createdAt     DateTime @default(now())
+
+  @@index([slug])
+}
+
+model Product {
+  id              String   @id @default(uuid())
+  sellerId        String
+  title           String
+  description     String
+  categoryId      String
+  subCategoryId   String?
+  categoryName    String?
+  pricePerUnit    Float
+  currency        String   @default("INR")
+  unit            String
+  minimumOrderQty Int      @default(1)
+  images          String[]
+  videoUrl        String?
+  pdfBrochureUrl  String?
+  specifications  Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([categoryId, createdAt(sort: Desc)])
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([subCategoryId])
+  @@index([pricePerUnit])
+}
+
+model BuyLead {
+  id                           String   @id @default(uuid())
+  buyerId                      String
+  buyerName                    String
+  buyerPhone                   String
+  buyerEmail                   String
+  buyerCity                    String
+  productTitle                 String
+  categoryId                   String
+  categoryName                 String?
+  quantity                     Int
+  unit                         String
+  targetPrice                  Float?
+  description                  String
+  urgency                      String
+  leadType                     String // direct | broadcast_deal
+  unlockedBySellerIds          String[]
+  reportedAsInvalidBySellerIds String[] @default([])
+  status                       String   @default("new") // new | contacted | quoted | closed | lost
+  dealValue                    Float?
+  createdAt                    DateTime @default(now())
+
+  @@index([categoryId, createdAt(sort: Desc)])
+  @@index([buyerCity, createdAt(sort: Desc)])
+  @@index([buyerId, createdAt(sort: Desc)])
+  @@index([status])
+}
+
+model Quotation {
+  id           String   @id @default(uuid())
+  leadId       String?
+  sellerId     String
+  sellerName   String
+  sellerGSTIN  String
+  buyerId      String
+  buyerName    String
+  buyerCompany String?
+  items        Json
+  subtotal     Float
+  taxRate      Float    @default(18)
+  taxAmount    Float
+  grandTotal   Float
+  validUntil   String
+  note         String?
+  status       String   @default("pending") // pending | accepted | declined
+  createdAt    DateTime @default(now())
+
+  @@index([buyerId, createdAt(sort: Desc)])
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([leadId])
+  @@index([status])
+}
